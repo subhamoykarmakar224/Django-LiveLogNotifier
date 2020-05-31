@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="{% static 'ticket/js/app-ticket-dash.js' %}"></script>
+<link href="{% static 'ticket/css/style-ticket-dash.css' %}" rel="stylesheet">
+<div class="div-container-header">
+    <h1>Tickes Panel</h1>
+</div>
+
+<!-- filter -->
+<div class="div-container-header">
+    <h4 class="head-container">
+        <blockquote>
+            Tickets
+            <a class="btn green lighten-2 white-text right" href="{% url 'ticket:view_create_tickets' %}">Create
+                Ticket</a>
+        </blockquote>
+    </h4>
+
+    <table class="striped " align="center">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Assignment Name</th>
+            <th>status</th>
+            <th>Remove</th>
+        </tr>
+        {% for t in tickets %}
+        <tr>
+            <td>{{ t.ticket_id }}</td>
+            <td>{{ t.ticket_name }}</td>
+            <td>{{ t.assignment_name }}</td>
+            <td>
+                <button data-target="status_{{ t.ticket_id }}" class="btn-flat modal-trigger">
+                    {% if t.status == 1 %}
+                    <i class="material-icons red-text">notifications_active</i>
+                    {% else %}
+                    <i class="material-icons green-text">notifications</i>
+                    {% endif %}
+                </button>
+                <div id="status_{{ t.ticket_id }}" class="modal">
+                    <div class="modal-content">
+                        <h4>Alert</h4>
+                        <p>You are about to change ticket status for Ticket ID : {{ t.ticket_id }}. Do you want to
+                            continue?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="{% url 'ticket:view_change_ticket_status' t.ticket_id %}"
+                           class="modal-close waves-effect waves-green btn-flat">Yes</a>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <button data-target="id_{{ t.ticket_id }}" class="btn-flat modal-trigger">
+                    <i class="material-icons red-text">delete</i>
+                </button>
+                <div id="id_{{ t.ticket_id }}" class="modal">
+                    <div class="modal-content">
+                        <h4>Alert</h4>
+                        <p>You are about to delete Ticket ID : {{ t.ticket_id }}. Do you want to delete this?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="{% url 'ticket:view_delete_tickets' t.ticket_id %}"
+                           class="modal-close waves-effect waves-green btn-flat">Yes</a>
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        {% endfor %}
+    </table>
+
+
+</div>
+
+{% endblock content %}

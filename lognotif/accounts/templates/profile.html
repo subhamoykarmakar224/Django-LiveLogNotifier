@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h4 class="">
+        <blockquote>Welcome, {{ request.user }}</blockquote>
+    </h4>
+    <!--  Tabbed menu  -->
+    <div class="row">
+        <div class="col s12">
+            <ul class="tabs">
+                {% if request.user.is_superuser %}
+                <li class="tab col s3"><a href="#myprofile" class="active" >My Profile</a></li>
+                <li class="tab col s3"><a href="#otherusers">Other Users</a></li>
+                {% else %}
+                <li class="tab col s3"><a href="#myprofile">My Profile</a></li>
+                {% endif %}
+                <li class="tab col s3"><a href="#logserver">Log Server</a></li>
+            </ul>
+        </div>
+
+        <!--   Current User Profile     -->
+        <div id="myprofile" class="col s12">
+            <table class="striped" align="center">
+                <tr>
+                    <th>USERNAME</th>
+                    <th>{{ request.user }}</th>
+
+                </tr>
+                <tr>
+                    <td>First Name</td>
+                    <td>{{ request.user.first_name }}</td>
+                </tr>
+                <tr>
+                    <td>Last Name</td>
+                    <td>{{ request.user.last_name }}</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>{{ request.user.email }}</td>
+                </tr>
+                <tr>
+                    <td>Joined on</td>
+                    <td>{{ request.user.date_joined }}</td>
+                </tr>
+                <tr>
+                    <td>Last Login</td>
+                    <td>{{ request.user.last_login }}</td>
+                </tr>
+
+            </table>
+        </div>
+
+        <!--   Other User Profile     -->
+        {% if request.user.is_superuser %}
+        <div id="otherusers" class="col s12">
+            <button class="waves-effect waves-light btn modal-trigger grey lighten-2 right black-text"
+                    id="btn-toggle-add-user-form">
+                <i class="material-icons left">add</i>
+                Add User
+            </button>
+
+            <br/><br/><br/>
+            <table class="striped" align="center">
+                <tr>
+                    <th>USERNAME</th>
+                    <th>Admin Status</th>
+                    <th>Delete</th>
+                </tr>
+                {% for l in userlist %}
+                {% if l != request.user %}
+                <tr>
+                    <td>{{ l }}</td>
+                    {% if l.is_superuser %}
+                    <td><i class="material-icons green-text">check_circle</i></td>
+                    <td></td>
+                    {% else %}
+                    <td><i class="material-icons red-text" id="btn-delete-user">close</i></td>
+
+                    <td><a class="modal-trigger to-del-uname" href="#modal_delete_user"><i
+                            class="material-icons red-text ">delete</i><span class="span-delete-username" hidden> {{ l }}</span></a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </table>
+            <br/><br/><br/><br/>
+
+            <!-- Add New User -->
+            <form method="post">
+                {% csrf_token %}
+                <input type="text" name="username" id="id_username" value="" maxlength="150" required autofocus=""
+                       hidden>
+                <input type="text" name="password" id="id_password" value="" required hidden>
+                <input type="text" name="role" id="id_role" value="Other" required hidden>
+                <button type="submit" id="btn-submit-new-user" hidden>Submit</button>
+            </form>
+            <div id="modal-add-user" class="row">
+                <div class="col s6">
+                    <h4 class="head-container">
+                        <blockquote>Add New User</blockquote>
+                    </h4>
+                    <span id="new-user-errors" style="color: red;">{{ error_add_user }}</span>
+                    <br/><br/>
+                    <label>Username</label>
+                    <input id="username" name="username" type="text" class="validate" required>
+                    <br/><br/>
+                    <label>Password</label>
+                    <input id="passwd1" name="passwd1" type="password" class="validate" required>
+                    <br/><br/>
+                    <label>Re-type Password</label>
+                    <input id="passwd2" name="passwd2" type="password" class="validate" required>
+                    <br/><br/>
+                    <p>
+                        <label>Role</label><br/><br/>
+                        <label>
+                            <input name="group1" type="radio" class="role" value="Admin"/>
+                            <span>Admin</span>
+                        </label>
+                    </p>
+                    <p>
+                        <label>
+                            <input name="group1" type="radio" checked class="role" value="Other"/>
+                            <span>Other</span>
+                        </label>
+                    </p>
+                    <br/><br/>
+                    <button id="btn-close-new-user-form" class="right btn-flat red-text">Cancel</button>
+                    <button id="btn-create-new-user-form" class="waves-effect waves-green btn right">Create</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- delete user modal -->
+        <div id="modal_delete_user" class="modal">
+            <div class="modal-content">
+                <blockquote><h5>Are you sure you want to delete the following user?</h5></blockquote>
+                <p>User: <span id="span-user-todelete"></span><br/></p>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" id="link-delete-u" class="modal-close waves-effect waves-green btn-flat">Yes</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Add New server -->
+        <div id="logserver" class="col s12">
+            <a class="waves-effect waves-light btn modal-trigger grey lighten-2 right black-text"
+                    href="{% url 'accounts:new_server_view' %}">
+                <i class="material-icons left">add</i>
+                Add New Server
+            </a>
+
+            <table class="striped" align="center">
+                <tr>
+                    <th>Server Name</th>
+                    <th>Location</th>
+                    <th>Created by</th>
+                    <th>Created on</th>
+                    <th></th>
+                </tr>
+                {% for server in log_servers %}
+                <tr>
+                    <td>{{ server.server_name }}</td>
+                    <td>{{ server.logsource }}</td>
+                    <td>{{ server.createdby }}</td>
+                    <td>{{ server.createdon }}</td>
+                    <td>
+                        <form method="post" action="{% url 'accounts:del_server_view' server.server_name %}">
+                            {% csrf_token %}
+                                <a class="modal-trigger to-del-uname" >
+                                    <button class="btn-flat" type="submit">
+                                        <i class="material-icons red-text">delete</i>
+                                    </button>
+                                </a>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<!-- Custom Static Files -->
+<script src="{% static 'accounts/js/app-accounts-signup.js' %}"></script>
+{% if show_add_userform == 'y' %}
+<script>$('#modal-add-user').show()</script>
+{% else %}
+<script>$('#modal-add-user').hide();</script>
+{% endif %}
+<link href="{% static 'accounts/css/style-accounts-signup.css' %}" rel="stylesheet">
+{% endblock content %}

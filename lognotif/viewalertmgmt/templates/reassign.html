@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="{% static 'viewalertmgmt/js/app-view-alert-mgmt.js' %}"></script>
+<link href="{% static 'viewalertmgmt/css/style-view-alert-mgmt.css' %}" rel="stylesheet">
+<div class="container">
+    <div>
+        <h1>Reassignment</h1>
+    </div>
+
+
+
+    <!-- Modal Reassign -->
+    <div id="modal-reassign-flag">
+        <p>This assignment is currently assigned to <u>{{ assignedTo }}</u>. Are you sure you want to re-assign?</p>
+        <form method="post" action="" id="form-id-reassign">
+            {% csrf_token %}
+            <label for="id_assignment_name">Assignment name:</label>
+            <input type="text" name="assignment_name" required="" id="id_assignment_name" maxlength="128" readonly value="{{ alert_name }}">
+            <label for="id_assignee">Assignee:</label>
+            <input type="text" name="assignee" required="" id="id_assignee" maxlength="100"
+                   value="{{ request.user }}" readonly>
+            <label for="id_assignto">Assignto:</label>
+            <input type="text" name="assignto" required="" id="id_assignto" maxlength="100" readonly hidden>
+            <br/>
+            <br/>
+            {% for u in userlist %}
+            {% if u != assignedTo %}
+                <label>
+                    <input name="group_user_list" type="radio" class="radio-user-list" value="{{ u }}"/>
+                    <span>{{ u }}</span>
+                </label>
+            {% endif %}
+            <br/>
+            {% endfor %}
+            <button class="modal-close waves-effect waves-green btn red white-text right" type="submit">Yes</button>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}

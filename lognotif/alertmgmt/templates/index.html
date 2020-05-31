@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="{% static 'alertmgmt/js/app-view.js' %}"></script>
+<link href="{% static 'alertmgmt/css/style-view.css' %}" rel="stylesheet">
+<div class="div-container-header">
+    <h1>Alarm Navigator Panel</h1>
+</div>
+
+<!-- filter -->
+<div class="div-container-header">
+    <form method="post"> {% csrf_token %}
+        <div class="row" id="div-container-filter">
+            <h4 class="head-container"><blockquote>Filters</blockquote></h4>
+            <div class="col s3 ">
+                <h5>Severity</h5>
+                {% if severity_level_filter != '' %}
+                <input name="severity_sort" id="severity-option-output" type="text" value="{{ severity_level_filter }}"
+                       hidden/>
+                {% else %}
+                <input name="severity_sort" id="severity-option-output" type="text" value="-1" hidden/>
+                {% endif %}
+
+                {% for key, val in severity_levels.items %}
+                <p>
+                    <label>
+                        {% if severity_level_filter == key %}
+                        <input class="severity-option" name="choice1" type="radio" value="{{ key }}" checked/>
+                        {% else %}
+                        <input class="severity-option" name="choice1" type="radio" value="{{ key }}"/>
+                        {% endif %}
+                        <span>{{ key }} - {{ val }}</a></span>
+                    </label>
+                </p>
+                {% endfor %}
+
+            </div>
+            <div class="col s6 ">
+                <h5>Date</h5>
+                {% if timestamp_filter == -1 %}
+                <input name="timestamp_sort" id="timestamp-option-output" type="text" value="-1" hidden/>
+                {% else %}
+                <input name="timestamp_sort" id="timestamp-option-output" type="text" value="1" hidden/>
+                {% endif %}
+                <p>
+                    <label>
+                        {% if timestamp_filter == 1 %}
+                        <input class="time-option" name="group1" type="radio" value="1" checked/>
+                        {% else %}
+                        <input class="time-option" name="group1" type="radio" value="1"/>
+                        {% endif %}
+                        <span>Ascending</span>
+                    </label>
+                </p>
+                <p>
+                    <label>
+                        {% if timestamp_filter == -1 %}
+                        <input class="time-option" name="group1" type="radio" value="-1" checked/>
+                        {% else %}
+                        <input class="time-option" name="group1" type="radio" value="-1"/>
+                        {% endif %}
+                        <span>Descending</span>
+                    </label>
+                </p>
+                <h5>Ranged</h5>
+                <input name="start_date" type="text" class="datepicker" placeholder="Start date"
+                       value="{{ start_date }}">
+                <input name="start_time" type="text" class="timepicker" value="{{ start_time }}">
+                to,
+                <input name="end_date" type="text" class="datepicker" placeholder="End date" value="{{ end_date }}">
+                <input name="end_time" type="text" class="timepicker" value="{{ end_time }}">
+            </div>
+            <div class="col s3 ">
+                <h5>Log Source</h5>
+                <input name="log_src_url" id="input-logsource" type="text" value="all" hidden/>
+
+                <input class="severity-option" name="choice-log-source" type="radio"/>
+                <label>
+                    {% if logsource == 'all' %}
+                    <input class="radio-log-source" name="choice-log-source" type="radio" value="all" checked/>
+                    {% else %}
+                    <input class="radio-log-source" name="choice-log-source" type="radio" value="all" />
+                    {% endif %}
+                    <span>all</a></span>
+                </label> <br/>
+                {% for l in logsources %}
+                <label>
+                    {% if l == logsource %}
+                    <input class="radio-log-source" name="choice-log-source" type="radio" value="{{ l }}" checked/>
+                    {% else %}
+                    <input class="radio-log-source" name="choice-log-source" type="radio" value="{{ l }}"/>
+                    {% endif %}
+                    <span>{{ l }}</a></span>
+                </label><br/>
+                {% endfor %}
+            </div>
+            <div class="col s12 offset-s10">
+                <button class="btn" id="btn_submit_filter_form" type="submit">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Pagination -->
+<div class="container center-align">
+    <a id="refresh-log-container" class="waves-effect waves-light" href=" {% url 'view_alert' %}">Refresh<i
+            class="material-icons left">refresh</i></a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <a id="filter-container" class="waves-effect waves-light">Filter<i
+            class="material-icons left">arrow_drop_down</i></a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input name="page_no" id="page-no-output" type="number" value="{{ page_no }}" hidden/>
+    <a class="waves-effect waves-light" id="decrease_page_counter"><i
+            class="material-icons left">keyboard_arrow_left</i>New</a> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <a class="waves-effect waves-light" id="increase_page_counter"><i
+            class="material-icons right">keyboard_arrow_right</i>Old</a>
+
+    <div class="right">Page {{ page_no }}</div>
+</form>
+</div>
+
+<br/><br/>
+
+<!-- Alert Summary -->
+{% include 'dashboard.html' %}
+
+<!-- Alert Details -->
+<div class="div-container-header">
+    <h4 class="head-container">
+        <blockquote>
+            Details
+            <span class="right">
+                <button data-target="modal-assign" class="red lighten-2 btn modal-trigger" id="id-btn-assign">Assign</button>
+                <button class="grey btn" onclick="copyToClipboard('#p1')">Copy to Clipboard</button>
+<!--                <a class="grey btn" href="{% url 'view_raw_log' logsource %}">View Raw</a>-->
+
+            </span>
+        </blockquote>
+    </h4>
+
+    <table class="striped black white-text" align="center">
+        <tr>
+            <th>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IDs
+            </th>
+            <th>Severity</th>
+            <th>Date&Time</th>
+            <th>Message</th>
+            <th>Edit</th>
+            <th></th>
+        </tr>
+        {% for l in logdata %}
+        <tr  class="{{ l.color }} lighten-2 ">
+            <!--            <td class="item-seq" id="{{ l.log_seq_index }}">{{ l.log_seq_index }}</td>-->
+            <td class="item-seq">
+                <label>
+                    <input type="checkbox" class="filled-in select-logs" name="log" value="{{ l.log_seq_index }}-{{ l.alert_id }}"/>
+                    <span class="white-text">{{ l.log_seq_index }}</span>
+                </label>
+            </td>
+            <td>{{ l.alarm_type }}</td>
+            <td>{{ l.datestamp }} {{ l.timestamp }}</td>
+            <td>
+                <p>{{ l.alarm_details }}</p>
+                <p><i>Comment :: {{ l.comments }}</i></p>
+            </td>
+            <td>
+                <a href="{% url 'add_alert_comment' l.log_seq_index %}">
+                    <i class="material-icons white-text">edit</i>
+                </a>
+            </td>
+            <td>
+                <a href="#">
+
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- Modal Structure -->
+    <div id="modal-assign" class="modal">
+        <form method="post" action="{% url 'view_add_assignment' %}">
+            <div class="modal-content">
+                <h4 class="head-container">
+                    <blockquote>
+                        New Assignment
+                    </blockquote>
+                </h4>
+                <p>
+                    <span id="error_new_assignment" style="color:red;"></span><br/><br/>
+                    <label for="id_assignment_name" class="">Assignment name:</label>
+                    <input type="text" name="assignment_name" maxlength="128" id="id_assignment_name" required="">
+                    <label for="id_assignee" class="">Assignee:</label>
+                    <input type="text" name="assignee" maxlength="100" id="id_assignee" required=""
+                           value="{{ request.user }}" readonly>
+                    <br/>
+                    <br/>
+                    <label for="id_assignto" class="">Assignto:</label><br/>
+                    <input type="text" name="assignto" maxlength="100" id="id_assignto" required="" hidden>
+
+                    {% for user in userlist %}
+                        {% if user != request.user %}
+                        <label>
+                            <input type="radio" class="id-userlist-group" name="userlist-group" value="{{ user }}"/>
+                            <span>{{ user }}</a></span>
+                        </label>
+                        <br/>
+                    {% endif %}
+
+                    {% endfor %}
+                    <br/>
+                        <textarea name="loglist" required="" rows="10" cols="40" id="id_loglist" hidden>ALL</textarea>
+                </p>
+
+            </div>
+            <div class="modal-footer">
+                {% csrf_token %}
+                <a href="#" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+                <button class="waves-effect waves-green btn-flat green white-text"  type="submit">Save</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<p id="p1" hidden>
+{% for l in logdata %}{{ l.alarm_type }},{{ l.datestamp }},{{ l.timestamp }},{{ l.hostname }},{{ l.app_name }},{{ l.alarm_details }}<br/>{% endfor %}
+</p>
+
+<p id="p2" hidden>
+
+</p>
+
+{% endblock content %}

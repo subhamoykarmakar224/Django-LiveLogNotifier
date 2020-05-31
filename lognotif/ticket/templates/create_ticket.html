@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="{% static 'ticket/js/app-ticket-dash.js' %}"></script>
+<link href="{% static 'ticket/css/style-ticket-dash.css' %}" rel="stylesheet">
+<div class="div-container-header">
+    <h1>Create Ticket</h1>
+</div>
+<!-- filter -->
+<div class="div-container-header">
+    <form method="post">
+        {% csrf_token %}
+        <label for="id_ticket_id">Ticket id:</label>
+        <input type="text" name="ticket_id" id="id_ticket_id" maxlength="50" required="" readonly value="{{tid}}">
+
+        <label for="id_ticket_name">Ticket name:</label>
+        <input type="text" name="ticket_name" id="id_ticket_name" maxlength="100" required>
+
+        <label for="id_assignment_name">Assignment name:</label>
+        <input type="text" name="assignment_name" id="id_assignment_name" maxlength="120" required="" readonly hidden>
+        {% for a in assignments %}
+        <p>
+            <label>
+                <input class="radio-assignment" name="choice-assignment" type="radio" value="{{ a.assignment_name }}"/>
+                <span>{{ a.assignment_name }}</a></span>
+            </label> <br/>
+        </p>
+        {% endfor %}
+
+        <label for="id_author">Author:</label>
+        <input type="text" name="author" id="id_author" maxlength="120" readonly value="{{ request.user }}">
+
+        <label for="id_createdon">Createdon:</label>
+        <input type="text" name="createdon" id="id_createdon" maxlength="100" readonly value="{{ mytimestamp }}">
+
+        <label for="id_comments">Comments:</label>
+        <textarea name="comments" id="id_comments" cols="40" rows="10"></textarea>
+
+        <button type="submit" class=" btn right">Create</button>
+    </form>
+</div>
+
+{% endblock content %}

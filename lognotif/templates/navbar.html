@@ -1,0 +1,58 @@
+<script>
+$(function() {
+    $('.btn-logout-trigger').on('click', function() {
+        $("#btn-logout").trigger("click")
+    });
+    $('.dropdown-trigger').dropdown({ constrainWidth: false, coverTrigger: false });
+});
+
+
+</script>
+<div class="navbar-fixed">
+    <nav>
+        <div class="nav-wrapper light-blue">
+            <a href="#" class="brand-logo center">Alert Navigator</a>
+            <ul class="left hide-on-med-and-down">
+                <li data-target='dropdown-filemenu' class="dropdown-trigger {{ file_page }}"><a
+                        href="#!">File</a></li>
+                <li class="{{ view_page }}"><a class="" href="{% url 'view_alert' %}">View</a></li>
+                <li class="{{ alert_mng_page }}"><a class="" href="{% url 'viewalertmgmt:alert_mgnt_dash' %}">Alert
+                    Management</a></li>
+                <li class="{{ trouble_page }}"><a class="" href="{% url 'ticket:view_tickets_list' %}">Trouble
+                    Ticket</a></li>
+
+                {% if user.is_authenticated %}
+                <li class="{{ profile_page }}">
+                    <a class="" href="{% url 'accounts:user_profile_view' %}">Profile</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+</div>
+<div class="btn-login-logout right white-text">
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'accounts:user_logout_view' %}">
+            {% csrf_token %}
+            <button class="btn-flat light-blue white-text" id   ="btn-logout" type="submit">Logout</button>
+        </form>
+        {% else %}
+        <a class="btn-flat light-blue white-text" href="{% url 'accounts:user_login_view' %}">Login</a>
+        {% endif %}
+    </div>
+<style>
+        .btn-login-logout {
+            width: 100px;
+            text-decoration: none;
+            color: white;
+            z-index: 10000;
+            position: relative;
+            margin-top: -50px;
+            float: right;
+        }
+    </style>
+<!-- FILE MENU -->
+<ul id='dropdown-filemenu' class='dropdown-content'>
+    <li><a href="{% url 'filemenu:open_new_window_view' %} ">New Window</a></li>
+    <li><a href="{% url 'filemenu:quit_app_view' %}">Exit</a></li>
+</ul>

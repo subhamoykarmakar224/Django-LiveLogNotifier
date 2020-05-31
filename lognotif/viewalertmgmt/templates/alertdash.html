@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<script src="{% static 'viewalertmgmt/js/app-view-alert-mgmt.js' %}"></script>
+<link href="{% static 'viewalertmgmt/css/style-view-alert-mgmt.css' %}" rel="stylesheet">
+
+<div class="container">
+    <div>
+        <h1>Alert Management Dashboard</h1>
+    </div>
+    <div class="row">
+        <div class="col s12">
+            <ul class="tabs">
+                <li class="tab col s3"><a class="active" href="#myassign">My Assignments</a></li>
+                <li class="tab col s3"><a id="tab-assign-task" class="" href="#assignto">Assigned Tasks</a></li>
+            </ul>
+        </div>
+
+        <!--   Tasks assigned by me    -->
+        <div id="assignto" class="col s12">
+            <table class="striped" align="center">
+                <tr>
+                    <th>Assignment Name</th>
+                    <th>To</th>
+                    <th>Ack</th>
+                    <th>Re-assign</th>
+                </tr>
+                {% for a in assignee %}
+                <tr>
+                    <td>{{ a.assignment_name }}</td>
+                    <td>{{ a.assignto }}</td>
+                    <td>
+                        <label>
+                            {% if a.ackstatus %}
+                            <i class="material-icons green-text">check_box</i>
+                            {% else %}
+                            <i class="material-icons red-text">check_box_outline_blank</i>
+                            {% endif %}
+                            <span></span>
+                        </label>
+                    </td>
+                    <td>
+                        <button class="btn-flat modal-trigger btn-reassign-ack-parent" href="#modal-reassign-flag">
+                            <i class="material-icons red-text">assignment_late</i> <span hidden>{{ a.assignment_name }}</span>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!--   Tasks assigned to me     -->
+        <div id="myassign" class="col s12">
+            <table class="striped" align="center">
+                <tr>
+                    <th>Assignment Name</th>
+                    <th>By</th>
+                    <th>Ack</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {% for a in assignedToMe %}
+                {% if selected == a.assignment_name %}
+                <tr class="grey lighten-1 ">
+                {% else %}
+                <tr>
+                {% endif %}
+                    <td>{{ a.assignment_name }}</td>
+                    <td>{{ a.assignee }}</td>
+                    <td>
+                        <label>
+                            <form method="post" action="{% url 'viewalertmgmt:ack_alert_view' a.assignment_name %}">
+                                {% csrf_token %}
+                                <button class="btn-flat" type="submit" id="btn-change-ack-status">
+                                    {% if a.ackstatus %}
+                                    <i class="material-icons green-text">check_box</i>
+                                    {% else %}
+                                    <i class="material-icons red-text">check_box_outline_blank</i>
+                                    {% endif %}
+                                </button>
+                            </form>
+                            <span></span>
+                        </label>
+                    </td>
+                    <td>
+                        <button class="btn-flat modal-trigger btn-delete-ack-parent" href="#modal-delete-flag">
+                            <i class="material-icons red-text">delete_forever</i> <span hidden>{{ a.assignment_name }}</span>
+                        </button>
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'viewalertmgmt:ack_alert_log_view' a.assignment_name %}">
+                            {% csrf_token %}
+                            <button class="btn-flat btn-show-log-details" type="submit">
+                                <i class="material-icons">keyboard_arrow_right</i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+<br/><br/><br/>
+<div class="div-container-header">
+    {% if logdata %}
+    <h4 class="head-container">
+        <blockquote>
+            Log Data
+            <span class="right">
+            <button class="grey btn" onclick="copyToClipboard('#p1')">Copy to Clipboard</button>
+            <a class="btn green lighten-2 white-text" href="{% url 'ticket:view_associate_tickets' selected %}">Create Ticket<span class="assignmnt-name" hidden></span></a>
+            </span>
+        </blockquote>
+    </h4>
+
+    <table class="striped" align="center">
+        <tr>
+            <th>Severity</th>
+            <th>Date&Time</th>
+            <th>Message</th>
+        </tr>
+        {% for l in logdata %}
+        <tr>
+            <td>{{ l.alarm_type }}</td>
+            <td>{{ l.datestamp }} {{ l.timestamp }}</td>
+            <td>{{ l.alarm_details }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% endif %}
+</div>
+
+<!-- Modal Delete Assignments -->
+<div id="modal-delete-flag" class="modal">
+    <div class="modal-content">
+        <h4>Alert</h4>
+        <p>Are you sure you want to delete this assignment?</p>
+        <form id="btn-delete-ack" method="post" action="/alertmgmt/ack_alert_delete/"> {% csrf_token %}
+            <button class="modal-close waves-effect waves-green btn red white-text right" type="submit">Yes</button>
+        </form>
+    </div>
+    <div class="modal-footer">
+    </div>
+</div>
+
+
+<div id="modal-reassign-flag" class="modal">
+    <div class="modal-content">
+        <h4>Alert</h4>
+        <p>Are you sure you want to reassign this assignment?</p>
+        <form id="btn-reassign" method="post" action="/alertmgmt/alert_reassign/"> {% csrf_token %}
+            <button class="modal-close waves-effect waves-green btn red white-text right" type="submit">Yes</button>
+        </form>
+    </div>
+    <div class="modal-footer">
+    </div>
+</div>
+
+<p id="p1" hidden>
+{% for l in logdata %}{{ l.alarm_type }},{{ l.datestamp }},{{ l.timestamp }},{{ l.hostname }},{{ l.app_name }},{{ l.alarm_details }}<br/>{% endfor %}
+</p>
+
+{% endblock content %}

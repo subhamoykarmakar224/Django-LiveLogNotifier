@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div id="modal-add-server" class="row">
+        <div class="col s6">
+            <h4 class="head-container">
+                <blockquote>Add New Server</blockquote>
+            </h4>
+            <br/><br/>
+            <form method="post">
+                {% csrf_token %}
+                <span style="color: red;">{{ error }}</span>
+                <br/>
+                <label for="id_servername" class="">Servername:</label>
+                <input type="text" name="servername" id="id_servername" required="" maxlength="100" value="{{ form.cleaned_data.servername }}" autofocus>
+                <br/>
+                <label for="id_loglocation" class="">Log Location:</label>
+                <input type="text" name="loglocation" id="id_loglocation" required="" maxlength="100" value="{{ form.cleaned_data.loglocation }}" >
+                <br/>
+                <label for="id_createdby" class="">Created by:</label>
+                <input type="text" name="createdby" id="id_createdby" required="" maxlength="100"
+                       value="{{ request.user }}" readonly>
+                <br/><br/>
+                <button type="submit" class="btn right">Save</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Custom Static Files -->
+<script src="{% static 'accounts/js/app-accounts-newserver.js' %}"></script>
+{% endblock content %}

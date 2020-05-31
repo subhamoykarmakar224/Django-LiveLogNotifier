@@ -1,0 +1,8 @@
+.div-container-header {
+    margin-left: 100px;
+    margin-right: 100px;
+}
+
+input[type="checkbox"][readonly] {
+    pointer-events: none;
+}
